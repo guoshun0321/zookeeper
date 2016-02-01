@@ -42,6 +42,8 @@
 #include <poll.h>
 #include <unistd.h>
 #include <sys/time.h>
+#else
+#include <Winnt.h> // for InterlockedAdd
 #endif
 
 void zoo_lock_auth(zhandle_t *zh)
@@ -490,6 +492,9 @@ int32_t fetch_and_add(volatile int32_t* operand, int incr)
          : "0"(incr)
          : "memory");
    return result;
+#elif _WIN64
+    int32_t result = InterlockedAdd(operand, incr);
+    return result - incr;
 #else
     volatile int32_t result;
     _asm
